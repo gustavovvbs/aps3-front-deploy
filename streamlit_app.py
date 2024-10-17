@@ -258,7 +258,7 @@ if choice == 'Empréstimos':
                         usuario_resp = requests.get(f'{API_URL}/usuarios/{id_usuario}')
                         bike_resp = requests.get(f'{API_URL}/bikes/{id_bike}')
                         if usuario_resp.status_code == 200 and bike_resp.status_code == 200:
-                            usuario_nome = usuario_resp.json()['Usuario'].get('nome', 'Desconhecido')
+                            usuario_nome = usuario_resp.json()['usuario'].get('nome', 'Desconhecido')
                             bike_info = bike_resp.json()['Bike']
                             bike_desc = f"{bike_info['marca']} {bike_info['modelo']}"
                             key = f"Usuário: {usuario_nome} - Bike: {bike_desc}"
