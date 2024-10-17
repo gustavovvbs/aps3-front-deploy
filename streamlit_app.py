@@ -51,7 +51,7 @@ if choice == 'Usuários':
                 cpf = st.text_input('CPF', value=user_data['cpf'])
                 if st.button('Atualizar'):
                     data = {'nome': nome, 'data_nascimento': data_nascimento, 'cpf': cpf}
-                    id_usuario = user_data['_id']['$oid']
+                    id_usuario = user_data['_id']
                     response = requests.put(f'{API_URL}/usuarios/{id_usuario}', json=data)
                     if response.status_code == 200:
                         st.success('Usuário atualizado com sucesso')
@@ -72,7 +72,7 @@ if choice == 'Usuários':
                 selected_user = st.selectbox('Selecione um usuário para deletar', list(user_options.keys()))
                 user_data = user_options[selected_user]
                 if st.button('Deletar'):
-                    id_usuario = user_data['_id']['$oid']
+                    id_usuario = user_data['_id']
                     response = requests.delete(f'{API_URL}/usuarios/{id_usuario}')
                     if response.status_code == 200:
                         st.success('Usuário deletado com sucesso')
@@ -150,7 +150,7 @@ elif choice == 'Bikes':
                 selected_bike = st.selectbox('Selecione uma bike para deletar', list(bike_options.keys()))
                 bike_data = bike_options[selected_bike]
                 if st.button('Deletar'):
-                    id_bike = bike_data['_id']['$oid']
+                    id_bike = bike_data['_id']
                     response = requests.delete(f'{API_URL}/bikes/{id_bike}')
                     if response.status_code == 200:
                         st.success('Bike deletada com sucesso')
@@ -262,7 +262,7 @@ if choice == 'Empréstimos':
                             bike_info = bike_resp.json()['Bike']
                             bike_desc = f"{bike_info['marca']} {bike_info['modelo']}"
                             key = f"Usuário: {usuario_nome} - Bike: {bike_desc}"
-                            emprestimo_options[key] = emprestimo.get('_id', {}).get('$oid', None)
+                            emprestimo_options[key] = emprestimo['_id']
                         else:
                             continue
                 
