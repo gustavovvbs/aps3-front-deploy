@@ -166,43 +166,58 @@ if choice == 'Empréstimos':
     action = st.radio('Ação', ['Visualizar', 'Criar', 'Deletar'], horizontal=True)
 
     if action == 'Visualizar':
-        response = requests.get(f'{API_URL}/emprestimos/')
-        if response.status_code == 200:
-            emprestimos = response.json()['emprestimos']
-            if emprestimos:
-                emprestimos_users_id = [emprestimo['id_usuario'] for emprestimo in emprestimos]
-                emprestimos_bikes_id = [emprestimo['id_bike'] for emprestimo in emprestimos]
-                users = {}
-                for user_id in emprestimos_users_id:
-                    user_response = requests.get(f'{API_URL}/usuarios/{user_id}')
-                    if user_response.status_code == 200:
-                        users[user_id] = user_response.json()['usuario']['nome']
+        st.subheader('Visualizar Empréstimos')
 
-                bikes = {}
-                for bike_id in emprestimos_bikes_id:
-                    bike_response = requests.get(f'{API_URL}/bikes/{bike_id}')
-                    if bike_response.status_code == 200:
-                        bike_info = bike_response.json()['Bike']
-                        bikes[bike_id] = f"{bike_info['marca']} {bike_info['modelo']}"
+        user_response = requests.get(f'{API_URL}/usuarios/')
+        bike_response = requests.get(f'{API_URL}/bikes/')
 
-                emprestimos_data = []
-                for emprestimo in emprestimos:
-                    usuario_nome = users.get(emprestimo['id_usuario'], "Usuário não encontrado")
-                    bike_desc = bikes.get(emprestimo['id_bike'], "Bike não encontrada")
-                    emprestimos_data.append({
-                        "ID": emprestimo['_id'],
-                        "Usuário": usuario_nome,
-                        "Bike": bike_desc,
-                        "Data de Empréstimo": emprestimo['data_emprestimo'],
-                        "Data de Devolução": emprestimo['data_devolucao']
-                    })
+        if user_response.status_code == 200 and bike_response.status_code == 200:
+            users = user_response.json().get('usuarios', [])
+            bikes = bike_response.json().get('bikes', [])
 
-                st.subheader('Lista de Empréstimos')
-                st.table(emprestimos_data)
+            user_options = {user['nome']: user['_id'] for user in users}
+            bike_options = {f"{bike['marca']} {bike['modelo']}": bike['_id'] for bike in bikes}
+
+            selected_user = st.selectbox('Selecione um usuário (opcional)', ['Todos'] + list(user_options.keys()))
+            selected_bike = st.selectbox('Selecione uma bike (opcional)', ['Todas'] + list(bike_options.keys()))
+
+            response = requests.get(f'{API_URL}/emprestimos/')
+            if response.status_code == 200:
+                emprestimos = response.json().get('emprestimos', [])
+
+                if selected_user != 'Todos' and selected_bike != 'Todas':
+                    emprestimos = [e for e in emprestimos if e['id_usuario'] == user_options[selected_user] and e['id_bike'] == bike_options[selected_bike]]
+                elif selected_user != 'Todos':
+                    emprestimos = [e for e in emprestimos if e['id_usuario'] == user_options[selected_user]]
+                elif selected_bike != 'Todas':
+                    emprestimos = [e for e in emprestimos if e['id_bike'] == bike_options[selected_bike]]
+
+                if emprestimos:
+                    user_dict = {user['_id']: user['nome'] for user in users}
+                    bike_dict = {bike['_id']: f"{bike['marca']} {bike['modelo']}" for bike in bikes}
+
+                    emprestimos_data = []
+                    for emprestimo in emprestimos:
+                        usuario_nome = user_dict.get(emprestimo['id_usuario'], "Usuário não encontrado")
+                        bike_desc = bike_dict.get(emprestimo['id_bike'], "Bike não encontrada")
+                        emprestimos_data.append({
+                            "ID": emprestimo['_id'],
+                            "Usuário": usuario_nome,
+                            "Bike": bike_desc,
+                            "Data de Empréstimo": emprestimo['data_emprestimo'],
+                            "Data de Devolução": emprestimo['data_devolucao']
+                        })
+
+                    st.subheader('Lista de Empréstimos')
+                    st.table(emprestimos_data)
+                else:
+                    st.info('Nenhum empréstimo encontrado com os filtros aplicados.')
             else:
-                st.info('Nenhum empréstimo encontrado.')
+                st.error('Erro ao obter empréstimos.')
         else:
-            st.error('Erro ao obter empréstimos')
+            st.error('Erro ao obter usuários ou bikes.')
+
+
 
     elif action == 'Criar':
         st.subheader('Criar Empréstimo')
