@@ -16,9 +16,31 @@ if choice == 'Usuários':
         response = requests.get(f'{API_URL}/usuarios/')
         if response.status_code == 200:
             users = response.json()['usuarios']
-            if users:
+
+            st.subheader('Visualizar Usuários')
+
+            user_options = {user['nome']: user['_id'] for user in users}
+            
+            selected_user = st.selectbox('Selecione um usuário (opcional)', ['Todos'] + list(user_options.keys()))
+
+            emprestimo_response = requests.get(f'{API_URL}/emprestimos/')
+            emprestimo = []
+            if selected_user == 'Todos':
+                filtered_users = users
+            else:
+                filtered_users = [user for user in users if user['nome'] == selected_user]
+                emprestimos = emprestimo_response.json().get('emprestimos', [])
+                for e in emprestimos:
+                    if e['id_usuario'] == user_options[selected_user]:
+                        emprestimo = [e]
+            if filtered_users:
                 st.subheader('Lista de Usuários')
-                st.table(users)
+                st.table(filtered_users)
+                if emprestimo != []:
+                    st.subheader('Lista de Empréstimos do Usuário')
+                    st.table(emprestimo)
+                else:
+                    pass
             else:
                 st.info('Nenhum usuário encontrado.')
         else:
@@ -91,9 +113,32 @@ elif choice == 'Bikes':
         response = requests.get(f'{API_URL}/bikes/')
         if response.status_code == 200:
             bikes = response.json()['bikes']
-            if bikes:
+
+            st.subheader('Visualizar Bikes')
+
+            bike_options = {bike['_id']: bike['_id'] for bike in bikes}
+            
+            selected_bike = st.selectbox('Selecione um usuário (opcional)', ['Todos'] + list(bike_options.keys()))
+
+            emprestimo_response = requests.get(f'{API_URL}/emprestimos/')
+            emprestimo = []
+            if selected_bike == 'Todos':
+                filtered_bikes = bikes
+            else:
+                filtered_bikes = [bike for bike in bikes if bike['_id'] == selected_bike]
+                emprestimos = emprestimo_response.json().get('emprestimos', [])
+                for e in emprestimos:
+                    print(e)
+                    if e['id_bike'] == bike_options[selected_bike]:
+                        emprestimo = [e]
+            if filtered_bikes:
                 st.subheader('Lista de Bikes')
-                st.table(bikes)
+                st.table(filtered_bikes)
+                if emprestimo != []:
+                    st.subheader('Lista de Empréstimo da Bike')
+                    st.table(emprestimo)
+                else:
+                    pass
             else:
                 st.info('Nenhuma bike encontrada.')
         else:
